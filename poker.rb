@@ -3,8 +3,8 @@ class Card
         T: 10,
         J: 11,
         Q: 12,
-        K: 14,
-        A: 15
+        K: 13,
+        A: 14
     }
     attr_reader :value
     attr_reader :suit
@@ -48,35 +48,27 @@ class Hand
     end
 
     def is_flush?
-        flush_indicator = false
-        suit = @hand[0].suit
-        suit_counter = 1
+
+        suit_value = @hand[0].suit
         @hand[1..-1].each {|x|
-            if x.suit == suit
-                suit_counter += 1
-            else
-                suit = x.suit
-                suit_counter = 1
+            if x.suit != suit_value
+                return false
             end
         }
-        flush_indicator = true if suit_counter >= 4
-        return flush_indicator
+
+        return true
     end
 
-    def repeat_counter
-        counter_1 = 1
-        counter_1_value = @hand[0]
-        counter_2 = 1
-        counter_2_value = @hand[1]
-        for card in @hand[1..-1]
-            if card = counter_1_value
-                counter_1 += 1
-                
-
-
+    def is_straight?
+        if @hand[4].value - @hand[0].value == 4
+            return true
+        else
+            return false
         end
+    end
 
 
+    def repeat_counter
 
     end
 
@@ -89,6 +81,19 @@ c2 = Card.new("AC")
 # c1.display_card
 # c2.display_card
 
-h1 = Hand.new("8S TC KC 9S 4S")
+h1 = Hand.new("5S 6C 7C 8S 9S")
+h2 = Hand.new("8C 9C TC JC QC")
+h3 = Hand.new("TS JS QC KS AS")
+h4 = Hand.new("8S TS KS 9S 4S")
+
 h1.show_hand
-puts "Flush? #{h1.is_flush?}"
+h2.show_hand
+h3.show_hand
+h4.show_hand
+
+
+puts 1, "Flush? #{h1.is_flush?} Straight? #{h1.is_straight?}" #false
+puts 2, "Flush? #{h2.is_flush?} Straight? #{h2.is_straight?}" #true
+puts 3, "Flush? #{h3.is_flush?} Straight? #{h3.is_straight?}" #false
+puts 4, "Flush? #{h4.is_flush?} Straight? #{h4.is_straight?}" #true
+
