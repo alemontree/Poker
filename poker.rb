@@ -41,6 +41,7 @@ class Hand
         @arr.each {|x| @hand.push(Card.new(x)) }
         @hand.sort! {|x, y| x.value <=> y.value }
     end
+    attr_reader :hand
 
     def show_hand
         @hand.each {|x| x.display_card}
@@ -93,6 +94,8 @@ class Hand
         straight_check = self.is_straight?
         repeats = self.repeat_counter
 
+        #@hand.type = ROYAL_FLUSH;
+
         if flush_check && straight_check && @hand[4].value == 14
             @hand.push(10)
         elsif flush_check && straight_check
@@ -116,8 +119,22 @@ class Hand
         end
         return @hand
     end
-
 end
+
+def secondary_compare(h1, h2)
+    if h1.hand[5] == 1 || h1.hand[5] == 5 || h1.hand[5] == 6 || h1.hand[5] == 8   
+        if h1.hand[4].value > h2.hand[4].value
+            return 1
+        elsif h1.hand[4].value < h2.hand[4].value
+            return -1
+        else
+            return 0
+        end        
+    else
+        return 0
+    end
+end
+            
 
 def compare(h1, h2)
     h1_rank = h1.hand_assign[5]
@@ -132,7 +149,7 @@ def compare(h1, h2)
     elsif h1_rank < h2_rank
         return -1
     else
-        return 0
+        return secondary_compare(h1, h2)
     end
 
 end
