@@ -11,21 +11,30 @@ $hand_type = {
     "10"=> "Royal Flush"
 }
 
+$value_dict = {
+    T: 10,
+    J: 11,
+    Q: 12,
+    K: 13,
+    A: 14
+}
+
+# $rev_value_dict = {
+#     :11 => "Jack",
+#     :12 => "Queen",
+#     :13 => "King",
+#     :14 => "Ace"
+# }
+
 class Card
-    @@value_dict = {
-        T: 10,
-        J: 11,
-        Q: 12,
-        K: 13,
-        A: 14
-    }
+
     attr_reader :value
     attr_reader :suit
 
     def initialize(str)
         @rank = str[0]
         @suit = str[1]
-        @value =  @rank.to_i == 0 ? @@value_dict[@rank.to_sym] : @rank.to_i
+        @value =  @rank.to_i == 0 ? $value_dict[@rank.to_sym] : @rank.to_i
     end
 
     def display_card
@@ -40,8 +49,12 @@ class Hand
         @hand = []
         @arr.each {|x| @hand.push(Card.new(x)) }
         @hand.sort! {|x, y| x.value <=> y.value }
+        @ranked_hand = 0
+        hand_assign
     end
     attr_reader :hand
+    attr_reader :ranked_hand
+    attr_reader :counter
 
     def show_hand
         @hand.each {|x| x.display_card}
@@ -66,18 +79,18 @@ class Hand
     end
 
     def repeat_counter
-        counter = {}
+        @counter = {}
         @hand[1..4].each {|card|
             # if card.is_i
             #     pass
-            if counter.has_key?(card.value)
-                counter[card.value] += 1
+            if @counter.has_key?(card.value)
+                @counter[card.value] += 1
             else
-                counter[card.value] = 1
+                @counter[card.value] = 1
             end
         }
         result_array = []
-        for k, v in counter
+        for k, v in @counter
             if v > 1
                 result_array.push(v)
             end
@@ -97,59 +110,127 @@ class Hand
         #@hand.type = ROYAL_FLUSH;
 
         if flush_check && straight_check && @hand[4].value == 14
-            @hand.push(10)
+            @ranked_hand = 10
         elsif flush_check && straight_check
-            @hand.push(9)
+            @ranked_hand = 9
         elsif flush_check
-            @hand.push(6)
+            @ranked_hand = 6
         elsif straight_check
-            @hand.push(5)
+            @ranked_hand = 5
         elsif repeats == [3,2]
-            @hand.push(7)
+            @ranked_hand = 7
         elsif repeats == [4]
-            @hand.push(8)
+            @ranked_hand = 8
         elsif repeats == [3]
-            @hand.push(4)
+            @ranked_hand = 4
         elsif repeats == [2,2]
-            @hand.push(3)
+            @ranked_hand = 3
         elsif repeats == [2]
-            @hand.push(2)
+            @ranked_hand = 2
         else
-            @hand.push(1)
+            @ranked_hand = 1
         end
-        return @hand
+        #puts @ranked_hand
+
     end
 end
 
 def secondary_compare(h1, h2)
-    if h1.hand[5] == 1 || h1.hand[5] == 5 || h1.hand[5] == 6 || h1.hand[5] == 8   
-        if h1.hand[4].value > h2.hand[4].value
+    if (h1.ranked_hand == 1 || h1.ranked_hand == 5 ||
+     h1.ranked_hand == 6 || h1.ranked_hand == 8)
+    highest_card_one = h1.hand[4].value
+    highest_card_two = h2.hand[4].value
+    # puts highest_card_one
+    # puts highest_card_two
+
+
+     print "P1 highest card is #{highest_card_one} || "
+     print "P2 highest card is #{highest_card_two}" 
+     puts  
+        if highest_card_one > highest_card_two
+            puts "Winner: P1"
+            puts
             return 1
-        elsif h1.hand[4].value < h2.hand[4].value
+        elsif highest_card_one < highest_card_two
+            puts "Winner: P2"
+            puts
             return -1
         else
-            return 0
+            highest_card_one = h1.hand[3].value
+            highest_card_two = h2.hand[3].value
+            puts "Tie!"
+            last_chance = highest_card_one <=> highest_card_two
+            if last_chance == 0
+                puts "Winner: P1"
+                puts
+                return 1
+            elsif last_chance == -1
+                puts "Winner: P2"
+                puts
+                return -1    
+            else
+                puts "Tie!" 
+                puts 
+                return 0    
+            end      
+                    
         end        
     else
-        return 0
+        return compare_repeating(h1, h2)
+
     end
 end
+
+def compare_repeating(h1, h2)
+    dict_one = h1.counter
+    dict_two = h2.counter
+    max_repeat = dict_one.max_by{|k, v| v}
+    #puts "Max repeat is #{max_repeat}"
+    highest_card_1 = dict_one.key(max_repeat[1])
+    highest_card_2 = dict_two.key(max_repeat[1])
+    result = 0
+    puts "P1's highest card is #{highest_card_1}"
+    puts "P2's highest card is #{highest_card_2}"
+    result = highest_card_1 <=> highest_card_2
+    if result == 1
+        puts "Winner: P1"
+        puts
+    elsif result == -1
+        puts "Winner: P2"
+        puts
+    else 
+        puts "Tie"
+        puts
+    end
+    return result 
+
+end
+
             
 
 def compare(h1, h2)
-    h1_rank = h1.hand_assign[5]
-    h2_rank = h2.hand_assign[5]
+    #puts
+    h1_rank = h1.ranked_hand
+    #puts "rank is #{h1_rank}"
+    h2_rank = h2.ranked_hand
+    #puts "rank is #{h2_rank}"
+    #puts
+
+    print "P1: #{$hand_type[h1_rank.to_s]} || "
+    print "P2: #{$hand_type[h2_rank.to_s]}"
     puts
 
-    puts "H1: #{$hand_type[h1_rank.to_s]}"
-    puts "H2: #{$hand_type[h2_rank.to_s]}"
-
     if h1_rank > h2_rank
+        puts "Winner: P1"
+        puts
         return 1
     elsif h1_rank < h2_rank
+        puts "Winner: P2"
+        puts
         return -1
     else
         return secondary_compare(h1, h2)
+        puts
     end
 
 end
@@ -158,9 +239,16 @@ def get_input
     #text = File.new("poker.txt")
     arr = IO.readlines("poker.txt")
     stats = []
+    test_case = 1
     for pair in arr
+        puts "Test Case # #{test_case}:"
+        test_case += 1
+        puts pair
+
         h1 = Hand.new(pair[0..14])
         h2 = Hand.new(pair[15..29])
+        # h1.show_hand
+        # h2.show_hand
         stats.push(compare(h1, h2))
 
     end
@@ -168,10 +256,7 @@ def get_input
     puts stats.count(-1)
     puts stats.count(0)
 
-
-    #puts h2
     
-
 end
 
 get_input
